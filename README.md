@@ -64,9 +64,19 @@ dengan menggunakan perintah berikut:
 
 atau jika ingin menggunakan virtual environment maka buat virtual environment terlebih dahulu dengan perintah:
 
+Windows
 > python -m venv env
-> source env/bin/activate (untuk Linux/Mac)
-> env\Scripts\activate (untuk Windows)
+
+Linux/Mac
+> python3 -m venv env
+
+Aktivasi virtual environment dengan perintah:
+
+Windows (PowerShell)
+> env/Scripts/Activate.ps1
+
+Linux/Mac
+> source env/bin/activate 
 
 Menjalankan program menggunkana virtual environment sangat disarankan untuk menghindari konflik versi dengan libraries
 yang terinstall pada environment global.
