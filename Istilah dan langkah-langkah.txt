@@ -1,0 +1,187 @@
+Glosarium Fuzzy Logic
+
+Variabel linguistik : Penamaan variabel input dan output dalam bahasa manusia (bahasa alami/linguistik),
+
+Semesta Pembicaraan : Keseluruhan nilai yang diperbolehkan untuk dioperasikan dalam suatu variabel fuzzy
+
+Himpunan Fuzzy : Himpunan nilai yang dapat dioperasikan dalam suatu variabel fuzzy
+
+Setiap variabel linguistik memiliki himpunan fuzzy yang dibagi menjadi beberapa kelas linguistik/istilah linguistik (linguistic terms),
+
+Fungsi Keanggotaan : Fungsi yang menentukan seberapa besar suatu nilai masuk ke dalam suatu himpunan fuzzy
+
++ ----------------------------------- +
++ Langkah - langkah dalam fuzzy logic +
++ ----------------------------------- +
+
+Step 1 : Tentukan Tujuan Penelitian
+Tujuan penelitian membatasi semesta pembicaraan dan menentukan variabel input dan output yang akan digunakan dalam fuzzy logic
+
+Kasus saya : 
+Model kontrol takaran pakan otomatis berdasarkan kondisi kolam pada budidaya lobster air tawar
+
+
+Step 2 : Tentukan Variabel Input dan Output
+Berdasarkan tujuannnya, maka perlu dicari referensi Rules Fuzzy yaitu variabel-variabel input yang akan mempengaruhi jumlah takaran pakan sebagai variabel output pada budidaya lobster air tawar
+
+Kasus saya :
+- Variabel Input : Temperatur air (°C) dan pH air (berasal dari dataset.csv) yang berisi kolom Temperature, pH, dan Time
+- Variabel Output : Takaran pakan (gr) -> dipengaruhi oleh berat lobster (3% - 5% dari berat lobster setiap minggunya, data berat lobster total didapatkan dari pemjumlahan kolom Weekly_[1-8] pada berat_lobster_weekly.csv, setiap kolom berisi data 31 lobster)
+
+Step (opsional) : Siapkan Data
+Data ini saya butuhkan untuk kasus penelitian saya karena mengambil data dari data monitoring pada 10 Agustus 2024 - 26 September 2024, yang berisi kolom Temperature, pH, dan Time dan data tambahan untuk menentukan fungsi keanggotaan takaran pakan (gr) berdasarkan berat lobster setiap minggunya. Data tersebut saya ambil dari data/dataset.csv dan data/berat_lobster_weekly.csv
+
+
+> Tahap Fuzzifikasi
+
+Step 3 : Tentukan Semesta Pembicaraan
+Semesta pembicaraan adalah rentang nilai yang diperbolehkan untuk dioperasikan dalam suatu variabel fuzzy
+
+Kasus saya :
+- Temperatur air (°C) : 14 - 40
+- pH air : 4 - 14
+- Takaran pakan (gr) : 3% - 5% dari total berat lobster dalam kolam
+
+
+Step 4 : Tentukan Himpunan Fuzzy
+Setiap variabel linguistik memiliki himpunan fuzzy yang dibagi menjadi beberapa kelas linguistik/istilah linguistik (linguistic terms)
+
+Kasus saya :
+- Temperatur air (°C) : rendah, normal, tinggi
+- pH air : asam, netral, basa
+- Takaran pakan (gr) : sedikit, sedang, banyak
+
+- Temperatur air (°C) : 
+    - rendah : 14 - 25
+    - normal : 23 - 31
+    - tinggi : 29 - 40
+
+- pH air :
+    - asam : 0 - 6.5
+    - netral : 5 - 9
+    - basa : 7.5 - 14
+
+- Takaran pakan (gr) :
+    - sedikit : 3% - 3.75%
+    - sedang : 3.5% - 4.5%
+    - banyak : 4.25% - 5%
+
+
+Step 5 : Tentukan Fungsi Keanggotaan
+Fungsi keanggotaan adalah fungsi yang menentukan seberapa besar suatu nilai masuk ke dalam suatu himpunan fuzzy
+
+Kasus saya :
+- Temperatur air (°C) : (trapmf)
+    - rendah : [14, 14, 23, 25]
+    - normal : [23, 25, 29, 31]
+    - tinggi : [29, 31, 40, 40]
+
+- pH air : (trapmf)
+    - asam : [0, 0, 5, 6.5]
+    - netral : [5, 6.5, 7.5, 9]
+    - basa : [7.5, 9, 14, 14]
+
+- Takaran pakan (gr) : step = 2% / 8 = 0.25% dari berat total lobster (trapmf)
+    (berat lobster siperbarui untuk setiap 7 hari sesuai berat_lobster_weekly.csv),
+    sehingga membership function takaran juga akan selalu di update
+    - sedikit : [3%, 3%, 3.5%, 3.75%]
+    - sedang : [3.5%, 3.75%, 4.25%, 4.5%]
+    - banyak : [4.25%, 4.5%, 5%, 5%]
+
+Setelah menentukan fungsi keanggotaan, maka akan dibuat grafik fungsi keanggotaan 
+untuk setiap variabel input dan output (khusus untuk variabel output, grafik fungsi
+keanggotaan akan selalu di update setiap minggunya)
+
+
+Step 6 : Membuat Persamaan untuk Mendapatkan Nilai Keanggotaan berdasarkan Fungsi Keanggotaan yang dipilih
+Persamaan yang digunakan tergantung dari jenis fungsi keanggotaan yang digunakan untuk
+setiap istilah linguistik
+
+Kasus saya :
+Dalam kasus saya, semua fungsi keanggotaan yang digunakan adalah trapesium (trapmf), maka
+persamaan yang digunakan adalah sebagai berikut :
+- Temperatur air (°C) :
+    - µtemperaturRENDAH(x) : 
+    bernilai 1 untuk x <= 23 
+    bernilai (d - x) / (d - c) untuk 23 < x < 25
+    bernilai 0 untuk x >= 25
+    - µtemperaturNORMAL(x) :
+    bernilai 0 untuk x <= 23 atau x >= 31
+    bernilai (x - 23) / (25 - 23) untuk 23 < x < 25
+    bernilai 1 untuk 25 <= x <= 29
+    bernilai (31 - x) / (31 - 29) untuk 29 < x < 31
+    - µtemperaturTINGGI(x) :
+    bernilai 0 untuk x <= 29
+    bernilai (x - 29) / (31 - 29) untuk 29 < x < 31
+    bernilai 1 untuk x >= 31
+
+- pH air :
+    - µpHASAM(y) :
+    bernilai 1 untuk y <= 5
+    bernilai (d - y) / (d - c) untuk 5 < y < 6.5
+    bernilai 0 untuk y >= 6.5
+    - µpHNETRAL(y) :
+    bernilai 0 untuk y <= 5 atau y >= 9
+    bernilai (y - 5) / (6.5 - 5) untuk 5 < y < 6.5
+    bernilai 1 untuk 6.5 <= y <= 7.5
+    bernilai (9 - y) / (9 - 7.5) untuk 7.5 < y < 9
+    - µpHBASA(y) :
+    bernilai 0 untuk y <= 7.5
+    bernilai (y - 7.5) / (9 - 7.5) untuk 7.5 < y < 9
+    bernilai 1 untuk y >= 
+    
+- Takaran pakan (gr) :
+    tb = total berat lobster mingguan
+    - µtakaranSEDIKIT(z) :
+    bernilai 1 untuk z <= 3.5*tb
+    bernilai (d - z) / (d - c) untuk 3.5*tb < z < 3.75*tb
+    bernilai 0 untuk z >= 3.75*tb
+    - µtakaranSEDANG(z) :
+    bernilai 0 untuk z <= 3.5*tb atau z >= 4.5*tb
+    bernilai (z - 3.5*tb) / (3.75*tb - 3.5*tb) untuk 3.5*tb < z < 3.75*tb
+    bernilai 1 untuk 3.75*tb <= z <= 4.25*tb
+    bernilai (4.5*tb - z) / (4.5*tb - 4.25*tb) untuk 4.25*tb < z < 4.5*tb
+    - µtakaranBANYAK(z) :
+    bernilai 0 untuk z <= 4.25*tb
+    bernilai (z - 4.25*tb) / (4.5*tb - 4.25*tb) untuk 4.25*tb < z < 4.5*tb
+    bernilai 1 untuk z >= 4.5*tb
+
+
+Step 7 : Melakukan Perhitungan untuk Mendapatkan Nilai/Derajat Keanggotaan
+Perhitungan ini dilakukan untuk mendapatkan nilai/derajat keanggotaan dari setiap variabel input yang kemudian akan digunakan untuk proses inferensi menggunakan aturan fuzzy
+
+
+Step 8 : Tentukan Aturan Fuzzy
+Aturan fuzzy adalah himpunan aturan yang menghubungkan antara variabel input dan output
+
+Kasus saya :
+- IF Temperatur air (°C) rendah AND pH air asam THEN Takaran pakan (gr) sedikit
+- IF Temperatur air (°C) rendah AND pH air netral THEN Takaran pakan (gr) sedang
+- IF Temperatur air (°C) rendah AND pH air basa THEN Takaran pakan (gr) sedikit
+- IF Temperatur air (°C) normal AND pH air asam THEN Takaran pakan (gr) sedang
+- IF Temperatur air (°C) normal AND pH air netral THEN Takaran pakan (gr) banyak
+- IF Temperatur air (°C) normal AND pH air basa THEN Takaran pakan (gr) sedang
+- IF Temperatur air (°C) tinggi AND pH air asam THEN Takaran pakan (gr) sedikit
+- IF Temperatur air (°C) tinggi AND pH air netral THEN Takaran pakan (gr) sedang
+- IF Temperatur air (°C) tinggi AND pH air basa THEN Takaran pakan (gr) sedikit
+
+> Tahap Inferensi
+
+Step 9 : Inferensi berdasarkan Aturan Fuzzy yang Teraktivasi
+Inferensi ini dilakukan dengan melakukan evaluasi nilai/derajat keanggotaan yang didapatkan pada Step 7 dengan aturan fuzzy yang telah ditentukan pada Step 8
+
+Kasus saya :
+Dalam Kasus saya, saya mengambil setiap kolom data yang telah dilakukan preprocessing berdasarkan waktu dan imputasi data yang hilang menggunakan metode interpolasi linear, kemudian menghitung nilai keanggotaan dari setiap variabel input, dan menentukan aturan fuzzy yang teraktivasi. Dalam kasus saya, saya menggunakan operator AND pada aturan fuzzy sehingga nilai keanggotaan yang terkecil (menggunakan fungsi min()) yang akan diambil sebagai output dari inferensi
+
+Step 10 : Melakukan Agregasi
+Agregasi dilakukan dengan menggabungkan semua aturan fuzzy yang teraktivasi menjadi satu himpunan fuzzy
+
+> Tahap Defuzzifikasi
+
+Step 11 : Membagi area Agregasi beberapa bagian
+Area agregasi yang telah didapatkan dari Step 10 akan dibagi menjadi beberapa bagian berdasarkan titik-titik potong dari setiap aturan fuzzy yang teraktivasi. Pada persamaan defuzzifikasi terdapat proses integrasi yang dilakukan, sehingga membutuhkan persamaan garis yang konsisten di atas sumbu x.
+
+Step 12 : Melakukan Defuzzifikasi
+Metode defuzzifikasi yang digunakan adalah metode centroid. Metode ini akan menghitung titik pusat dari area agregasi yang telah dibagi menjadi beberapa bagian pada Step 11.
+
+Pada penelitian saya juga memperhitungkan sensitivitas dari setiap variabel input terhadap variabel output yang didapatkan dari model yang telah dibuat berdasarkan referensi yang telah dikumpukan dari berbagai jurnal.
